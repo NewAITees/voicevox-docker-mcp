@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  # FastAPI+MCPアプリケーション
+  fastapi-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "50039:50039"
+    environment:
+      - VOICEVOX_API_URL=http://localhost:50021  # 外部で起動しているVOICEVOXエンジンに接続
+      - ENABLE_AUDIO_PLAYBACK=true  # 音声再生機能を有効にする
+    volumes:
+      - ./:/app  # 開発時のコード変更を反映
+    restart: unless-stopped
+
+volumes:
+  voicevox-data:  # VOICEVOXエンジンのキャッシュデータ用ボリューム 
