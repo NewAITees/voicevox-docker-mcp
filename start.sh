@@ -23,6 +23,11 @@ if ! command -v docker compose &> /dev/null; then
     exit 1
 fi
 
+# ALSAデバイスの確認
+if [ ! -d "/dev/snd" ]; then
+    echo "警告: ALSAデバイスが見つかりません。音声再生が機能しない可能性があります。"
+fi
+
 # 音声再生設定の確認
 if [ "$1" == "--no-audio" ]; then
     echo "音声再生機能を無効にして起動します..."
@@ -51,6 +56,10 @@ else
     echo "警告: FastAPI+MCPアプリケーションが応答していません。ログを確認してください。"
     docker compose logs fastapi-mcp
 fi
+
+# ALSAデバイスの確認
+echo "ALSAデバイスの状態を確認しています..."
+docker compose exec fastapi-mcp aplay -l
 
 echo ""
 echo "利用可能なエンドポイント:"

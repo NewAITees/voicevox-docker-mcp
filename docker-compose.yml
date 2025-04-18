@@ -8,12 +8,21 @@ services:
       dockerfile: Dockerfile
     ports:
       - "50039:50039"
+    devices:
+      - /dev/snd:/dev/snd  # サウンドデバイスをマウント（存在する場合のみ）
+    group_add:
+      - audio  # audioグループにコンテナを追加
     environment:
-      - VOICEVOX_API_URL=http://localhost:50021  # 外部で起動しているVOICEVOXエンジンに接続
+      - VOICEVOX_API_URL=http://host.docker.internal:50021  # ホストマシンへの接続用
       - ENABLE_AUDIO_PLAYBACK=true  # 音声再生機能を有効にする
+      - ALSA_CARD=Generic  # ALSAカード名を指定
+      - PULSE_SERVER=host.docker.internal  # PulseAudioサーバーの設定
     volumes:
       - ./:/app  # 開発時のコード変更を反映
+      - /tmp/.X11-unix:/tmp/.X11-unix  # X11ソケットのマウント
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Docker Desktop for Macでのホスト接続用
 
 volumes:
   voicevox-data:  # VOICEVOXエンジンのキャッシュデータ用ボリューム 

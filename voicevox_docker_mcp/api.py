@@ -9,7 +9,7 @@ import threading
 import json
 
 # 設定
-VOICEVOX_API_URL = "http://localhost:50021"
+VOICEVOX_API_URL = os.environ.get("VOICEVOX_API_URL", "http://localhost:50021")
 AUDIO_OUTPUT_PATH = "./output.wav"  # 常に同じファイル名で上書き
 
 # FastAPIアプリの初期化
@@ -160,9 +160,6 @@ async def synthesize_and_play(request: SynthesisRequest):
 @app.post("/synthesize")
 async def synthesize_voice(request: TextToSpeechRequest):
     try:
-        # VOICEVOXエンジンのURL
-        engine_url = "http://voicevox:50021"
-        
         # 音声合成用のクエリを作成
         query_params = {
             "text": request.text,
@@ -171,7 +168,7 @@ async def synthesize_voice(request: TextToSpeechRequest):
         
         # 音声合成クエリの作成
         audio_query_response = requests.post(
-            f"{engine_url}/audio_query",
+            f"{VOICEVOX_API_URL}/audio_query",
             params=query_params
         )
         audio_query_response.raise_for_status()
@@ -183,7 +180,7 @@ async def synthesize_voice(request: TextToSpeechRequest):
         }
         
         synthesis_response = requests.post(
-            f"{engine_url}/synthesis",
+            f"{VOICEVOX_API_URL}/synthesis",
             headers={"Content-Type": "application/json"},
             params=synthesis_params,
             json=audio_query
