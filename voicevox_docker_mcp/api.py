@@ -6,6 +6,7 @@ import os
 import time
 import simpleaudio as sa
 import threading
+import json
 
 # 設定
 VOICEVOX_API_URL = "http://localhost:50021"
@@ -27,6 +28,10 @@ class SynthesisRequest(BaseModel):
 class SynthesisResponse(BaseModel):
     status: str = "success"
     message: str = "音声を合成して再生しました"
+
+class TextToSpeechRequest(BaseModel):
+    text: str
+    speaker_id: int = 3  # デフォルトはずんだもん（ノーマル）
 
 # 音声再生用の関数
 def play_audio(file_path):
@@ -150,4 +155,42 @@ async def synthesize_and_play(request: SynthesisRequest):
     except requests.RequestException as e:
         raise HTTPException(status_code=503, detail=f"VOICEVOXエンジンへの接続エラー: {str(e)}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"内部サーバーエラー: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"内部サーバーエラー: {str(e)}")
+
+@app.post("/synthesize")
+async def synthesize_voice(request: TextToSpeechRequest):
+    try:
+        # VOICEVOXエンジンのURL
+        engine_url = "http://voicevox:50021"
+        
+        # 音声合成用のクエリを作成
+        query_params = {
+            "text": request.text,
+            "speaker": request.speaker_id
+        }
+        
+        # 音声合成クエリの作成
+        audio_query_response = requests.post(
+            f"{engine_url}/audio_query",
+            params=query_params
+        )
+        audio_query_response.raise_for_status()
+        audio_query = audio_query_response.json()
+        
+        # 音声合成の実行
+        synthesis_params = {
+            "speaker": request.speaker_id
+        }
+        
+        synthesis_response = requests.post(
+            f"{engine_url}/synthesis",
+            headers={"Content-Type": "application/json"},
+            params=synthesis_params,
+            json=audio_query
+        )
+        synthesis_response.raise_for_status()
+        
+        return {"audio": synthesis_response.content}
+        
+    except requests.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"音声合成に失敗しました: {str(e)}") 

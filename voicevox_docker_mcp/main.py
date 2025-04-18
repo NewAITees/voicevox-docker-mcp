@@ -1,5 +1,5 @@
 from fastapi_mcp import FastApiMCP
-import api  # 先ほど作成したapiモジュールをインポート
+from voicevox_docker_mcp import api  # パッケージ名を追加
 
 # MCPサーバーの初期化
 mcp = FastApiMCP(
